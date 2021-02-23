@@ -29,11 +29,13 @@ def main():
     with open(args.path, 'r') as bib_file:
         bib_database = bibtexparser.load(bib_file, parser=parser)
 
+    removeComments = []
     #Addin the keys - future to do is add using a json file - very meta driven.
     for comment in bib_database.comments:
         parse = False
+        print(comment)
         if "{Object Management Group}" in comment:
-            newEntry = addCitationKey(comment, "OMG")
+            newEntry = addCitationKey(comment, "OmgUML")
             parse = True
         elif "{Javier J. Gutiérrez and Clémentine Nebut and María J. Escalona and Manuel Mejías and Isabel M. Ramos}" in comment:
             newEntry = addCitationKey(comment, "Gutierrez2008")
@@ -43,11 +45,14 @@ def main():
             if checkType(newEntry):
                 try:
                     bib_database = bibtexparser.loads(newEntry, parser)
-                    bib_database.comments.remove(comment)
+                    removeComments.append(comment)
                 except:
                     pass
             else:
                 print("Failed because of a wrong type for {}".format(newEntry))
+
+    for rmComment in removeComments:
+        bib_database.comments.remove(rmComment)
 
     writer = BibTexWriter()
     writer.indent = '\t'
