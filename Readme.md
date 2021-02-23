@@ -1,4 +1,4 @@
-## Readme for BibTexConverter
+## Readme for BibtexOrganiser
 
 Using the bibtexparser.
 
