@@ -2,3 +2,4 @@
 testVenv/
 venvBib/
 *.bib
+.DS_Store
