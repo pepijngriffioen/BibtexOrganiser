@@ -25,7 +25,6 @@ def main():
 
     parser = BibTexParser()
     parser.customization = homogenize_latex_encoding
-
     with open(args.path, 'r') as bib_file:
         bib_database = bibtexparser.load(bib_file, parser=parser)
 
@@ -40,7 +39,12 @@ def main():
         elif "{Javier J. Gutiérrez and Clémentine Nebut and María J. Escalona and Manuel Mejías and Isabel M. Ramos}" in comment:
             newEntry = addCitationKey(comment, "Gutierrez2008")
             parse = True
-        
+        elif "{Han van der Aa and Claudio Di Ciccio and Henrik Leopold and Hajo A. Reijers}" in comment:
+            newEntry = addCitationKey(comment, "vanderAa2019")
+            parse = True
+        elif "{João Carlos de A.R. Gonçalves and Flávia Maria Santoro and Fernanda Araujo Baião}" in comment:
+            newEntry = addCitationKey(comment, "Goncalves2011")
+            parse = True
         if parse:
             if checkType(newEntry):
                 try:
