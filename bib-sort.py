@@ -45,6 +45,12 @@ def main():
         elif "{João Carlos de A.R. Gonçalves and Flávia Maria Santoro and Fernanda Araujo Baião}" in comment:
             newEntry = addCitationKey(comment, "Goncalves2011")
             parse = True
+        elif "{Cristina Venera Geambaşu}" in comment:
+            newEntry = addCitationKey(comment,"geambasu2012")
+            parse = True
+        elif "{Marie-Catherine De Marneffe and Bill Maccartney and Christopher D Manning}" in comment:
+            newEntry = addCitationKey(comment,"marneffe2006")
+            parse = True
         if parse:
             if checkType(newEntry):
                 try:
