@@ -1,4 +1,5 @@
 # Bib processor
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 I created this bibtex parser to help me with some problems I had with the Mendeley online export function. The main problem is the missing of citation keys for some entries. First I added them manually, but as I had to recreate the bib file quite often, this was a waste of time. To make this process more easy I wrote this script. 
 
