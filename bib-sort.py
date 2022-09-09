@@ -5,6 +5,7 @@ from bibtexparser.bwriter import BibTexWriter
 from bibtexparser.bibdatabase import BibDatabase
 from bibtexparser.bibdatabase import STANDARD_TYPES
 import argparse
+import json
 
 
 def addCitationKey(entry, newKey):
@@ -37,6 +38,66 @@ def retrieve_author(comment_entry: str) -> str:
     return author
 
 
+def retrieve_author_keys(json_filename: str) -> dict:
+    """Retrieve the author keys from a json file.
+
+    Args:
+        - json_filename (str): the filename where we get the author keys from.
+    Returns:
+        - dict of author keys. {"author_name": "author_key"}
+    """
+    input_file = open(json_filename)
+    data = json.load(input_file)
+    input_file.close()
+    if "author_id_keys" in data and isinstance(data["author_id_keys"], dict):
+        return data["author_id_keys"]
+    else:
+        return {}
+
+
+def process_author_keys_json(
+    bib_database: BibDatabase, parser: BibTexParser, json_filename: str
+) -> BibDatabase:
+    """Process the comments using the author keys from a json file.
+
+    Args:
+        - bib_database (BibDatabase): the database we are building.
+        - parser (BibTexParser): the bibtexparser to parse the entries.
+        - json_filename (str): name of the json file with the author names and keys.
+
+    Returns
+        - bib_database (BibDatabase): with the comments correctly processed.
+    """
+    author_keys = retrieve_author_keys(json_filename)
+
+    removeComments = []
+    # Addin the keys - future to do is add using a json file - very meta driven.
+    for comment in bib_database.comments:
+        parse = False
+        print(comment)
+        author = retrieve_author(comment)
+        if author in author_keys:
+            author_key = author_keys[author]
+            newEntry = addCitationKey(comment, author_key)
+            parse = True
+        else:
+            print(f"Author ({author}) not found in json.")
+
+        if parse:
+            if checkType(newEntry):
+                try:
+                    bib_database = bibtexparser.loads(newEntry, parser)
+                    removeComments.append(comment)
+                except:
+                    print("There was a problem with the loading of the entry.")
+                    pass
+            else:
+                print("Failed because of a wrong type for {}".format(newEntry))
+    for rmComment in removeComments:
+        bib_database.comments.remove(rmComment)
+    return bib_database
+
+
 def main():
     argsParser = argparse.ArgumentParser()
     argsParser.add_argument("path", type=str)
@@ -48,53 +109,9 @@ def main():
     with open(args.path, "r") as bib_file:
         bib_database = bibtexparser.load(bib_file, parser=parser)
 
-    removeComments = []
-    # Addin the keys - future to do is add using a json file - very meta driven.
-    for comment in bib_database.comments:
-        parse = False
-        print(comment)
-        if "{Object Management Group}" in comment:
-            newEntry = addCitationKey(comment, "OmgUML")
-            parse = True
-        elif (
-            "{Javier J. Gutiérrez and Clémentine Nebut and María J. Escalona and Manuel Mejías and Isabel M. Ramos}"
-            in comment
-        ):
-            newEntry = addCitationKey(comment, "Gutierrez2008")
-            parse = True
-        elif (
-            "{Han van der Aa and Claudio Di Ciccio and Henrik Leopold and Hajo A. Reijers}"
-            in comment
-        ):
-            newEntry = addCitationKey(comment, "vanderAa2019")
-            parse = True
-        elif (
-            "{João Carlos de A.R. Gonçalves and Flávia Maria Santoro and Fernanda Araujo Baião}"
-            in comment
-        ):
-            newEntry = addCitationKey(comment, "Goncalves2011")
-            parse = True
-        elif "{Cristina Venera Geambaşu}" in comment:
-            newEntry = addCitationKey(comment, "geambasu2012")
-            parse = True
-        elif (
-            "{Marie-Catherine De Marneffe and Bill Maccartney and Christopher D Manning}"
-            in comment
-        ):
-            newEntry = addCitationKey(comment, "marneffe2006")
-            parse = True
-        if parse:
-            if checkType(newEntry):
-                try:
-                    bib_database = bibtexparser.loads(newEntry, parser)
-                    removeComments.append(comment)
-                except:
-                    pass
-            else:
-                print("Failed because of a wrong type for {}".format(newEntry))
-
-    for rmComment in removeComments:
-        bib_database.comments.remove(rmComment)
+    process_author_keys_json(
+        bib_database, parser, "configuration/msc-thesis-author_keys.json"
+    )
 
     writer = BibTexWriter()
     writer.indent = "\t"
