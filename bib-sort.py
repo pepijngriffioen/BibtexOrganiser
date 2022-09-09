@@ -17,6 +17,21 @@ def checkType(entry):
     typeBib = entry[attx+1:ix]
     return typeBib in STANDARD_TYPES
 
+def retrieve_author(comment_entry:str) -> str:
+    """Retrieve the author from an entry as a comment.
+    
+    Args:
+        - comment_entry (str): the comment to search through.
+    
+    Returns:
+        - author (str): the author string from the comment.
+    """
+    author_word_index = comment_entry.index("author")
+    start_bracket = comment_entry[author_word_index:].index("{")
+    close_bracket = comment_entry[author_word_index:].index("}")
+    author = comment_entry[author_word_index+start_bracket+1:author_word_index+close_bracket]
+    return author
+
 def main():
     argsParser = argparse.ArgumentParser()
     argsParser.add_argument('path', type=str)
