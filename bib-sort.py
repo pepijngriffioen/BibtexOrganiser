@@ -1,3 +1,13 @@
+"""Transforms bib files to include everything.
+
+Bibtexparser imports the entries with problems as comments. In this script the comments
+are processed. The problem is that the entries do not get a citationKey, therefore we 
+have a json file to specify the citation key for certain authors. This script looks if the 
+author in a comment has a citation key specified in the json file. In that case it adds the
+citation key and adds the entry to the bibliography.
+
+Finally it is exported to a bib file to use in latex.
+"""
 import bibtexparser
 from bibtexparser.bparser import BibTexParser
 from bibtexparser.customization import homogenize_latex_encoding
@@ -8,16 +18,25 @@ import argparse
 import json
 
 
-def addCitationKey(entry, newKey):
+def add_citation_key(entry: str, new_key: str) -> str:
+    """Add citationkey after the { ."""
     ix = entry.find("{")
-    return entry[: ix + 1] + newKey + entry[ix + 1 :]
+    return entry[: ix + 1] + new_key + entry[ix + 1 :]
 
 
-def checkType(entry):
+def check_type(entry: str) -> bool:
+    """Check if the entry type is one of the standard types.
+
+    Args:
+        entry: The entry we need to check.
+
+    Returns:
+        True in case of an existing standard type. and False if it does not exist.
+    """
     attx = entry.find("@")
     ix = entry.find("{")
-    typeBib = entry[attx + 1 : ix]
-    return typeBib in STANDARD_TYPES
+    type_bib = entry[attx + 1 : ix]
+    return type_bib in STANDARD_TYPES
 
 
 def retrieve_author(comment_entry: str) -> str:
@@ -42,9 +61,10 @@ def retrieve_author_keys(json_filename: str) -> dict:
     """Retrieve the author keys from a json file.
 
     Args:
-        - json_filename (str): the filename where we get the author keys from.
+        json_filename: the filename where we get the author keys from.
+
     Returns:
-        - dict of author keys. {"author_name": "author_key"}
+        dict of author keys. {"author_name": "author_key"}
     """
     input_file = open(json_filename)
     data = json.load(input_file)
@@ -61,12 +81,12 @@ def process_author_keys_json(
     """Process the comments using the author keys from a json file.
 
     Args:
-        - bib_database (BibDatabase): the database we are building.
-        - parser (BibTexParser): the bibtexparser to parse the entries.
-        - json_filename (str): name of the json file with the author names and keys.
+        bib_database: the database we are building.
+        parser: the bibtexparser to parse the entries.
+        json_filename: name of the json file with the author names and keys.
 
     Returns
-        - bib_database (BibDatabase): with the comments correctly processed.
+        bib_database: with the comments correctly processed.
     """
     author_keys = retrieve_author_keys(json_filename)
 
@@ -78,13 +98,13 @@ def process_author_keys_json(
         author = retrieve_author(comment)
         if author in author_keys:
             author_key = author_keys[author]
-            newEntry = addCitationKey(comment, author_key)
+            newEntry = add_citation_key(comment, author_key)
             parse = True
         else:
             print(f"Author ({author}) not found in json.")
 
         if parse:
-            if checkType(newEntry):
+            if check_type(newEntry):
                 try:
                     bib_database = bibtexparser.loads(newEntry, parser)
                     removeComments.append(comment)
@@ -99,10 +119,11 @@ def process_author_keys_json(
 
 
 def main():
-    argsParser = argparse.ArgumentParser()
-    argsParser.add_argument("path", type=str)
-    argsParser.add_argument("output_path", type=str)
-    args = argsParser.parse_args()
+    """Combine the different methods to transform the bib file."""
+    args_parser = argparse.ArgumentParser()
+    args_parser.add_argument("path", type=str)
+    args_parser.add_argument("output_path", type=str)
+    args = args_parser.parse_args()
 
     parser = BibTexParser()
     parser.customization = homogenize_latex_encoding
