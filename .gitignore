@@ -1,5 +1,9 @@
 .vscode
-testVenv/
 venvBib/
-*.bib
 .DS_Store
+/configuration/*
+!/configuration/author_keys_example.json
+*.bib
+/input/*
+!/input/input_example.bib
+/output/*
